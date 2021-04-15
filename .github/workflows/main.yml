@@ -16,7 +16,7 @@ jobs:
     - name: Set up step
       id: check
       run: |
-        echo "::set-output name=result::failure"
+        echo "::set-output name=result::success"
 
   build:
     name: Build
@@ -35,4 +35,6 @@ jobs:
 
     steps:
     - name: Test step 1
-      run: echo "I am testing"
+      run: |
+        echo "I am testing"
+        exit 1
