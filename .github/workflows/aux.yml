@@ -1,0 +1,56 @@
+name: Helpers
+on:
+  workflow_run:
+    workflows: ["Pull Request Tests"]
+    types:
+      - requested
+
+jobs:
+  startrunner:
+    name: Start runners
+    runs-on: ubuntu-20.04
+    outputs:
+      started: ${{ steps.ec2.outputs.started }}
+
+    steps:
+    - name: Check out
+      uses: actions/checkout@v2
+
+    - name: Check current run
+      id: current
+      run: |
+        echo "Check on current run passed."
+        echo "::set-output name=check::pass"
+
+    - name: Check previous runs
+      if: steps.current.outputs.check == 'pass'
+      run: |
+        echo "Check on previous runs passed."
+        echo ${{ steps.current.outputs.check }}
+
+    - name: Start ec2 instance
+      id: ec2
+      run: |
+        if [ ${{ steps.current.outputs.check }} == 'pass' ]; then
+          echo "I am starting ec2 instances."
+          echo "::set-output name=started::yes"
+        elif [ ${{ steps.current.outputs.check }} == 'fail' ]; then
+          echo "Sorry, I cannot start ec2 instances."
+          echo "::set-output name=started::no"
+        fi
+
+  stoprunner:
+    name: Stop runners
+    needs: startrunner
+    runs-on: ubuntu-20.04
+    if: needs.startrunner.outputs.started == 'yes'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Check current run
+      run: echo "Check on current run passed."
+
+    - name: Stop ec2
+      run: echo "I am stopping ec2 instances."

@@ -1,0 +1,38 @@
+name: Pull Request Tests
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  setup:
+    name: Set up
+    runs-on: ubuntu-20.04
+    outputs:
+      result: ${{ steps.check.outputs.result }}
+
+    steps:
+    - name: Set up step
+      id: check
+      run: |
+        echo "::set-output name=result::success"
+
+  build:
+    name: Build
+    needs: setup
+    runs-on: ubuntu-20.04
+    if: needs.setup.outputs.result == 'success'
+
+    steps:
+    - name: Build step 1
+      run: echo "I am building"
+
+  test:
+    name: Test
+    needs: build
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Test step 1
+      run: echo "I am testing"
