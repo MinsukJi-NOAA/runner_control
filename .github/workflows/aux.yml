@@ -16,14 +16,11 @@ jobs:
     - name: Check out
       uses: actions/checkout@v2
 
-    - name: Pre
-      run: echo ${{ steps.current.outputs.check }}
-
     - name: Check current run
       id: current
       run: |
-        echo "Check on current run passed."
-        echo "::set-output name=check::pass"
+        echo "Check on current run did not passed."
+        echo "::set-output name=check::fail"
 
     - name: Check previous runs
       if: steps.current.outputs.check == 'pass'
