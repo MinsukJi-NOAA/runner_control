@@ -31,6 +31,7 @@ jobs:
     - name: Start ec2 instance
       id: ec2
       run: |
+        sleep 180
         if [ ${{ steps.current.outputs.check }} == 'pass' ]; then
           echo "I am starting ec2 instances."
           echo "::set-output name=started::yes"
