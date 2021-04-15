@@ -37,4 +37,3 @@ jobs:
     - name: Test step 1
       run: |
         echo "I am testing"
-        exit 1
