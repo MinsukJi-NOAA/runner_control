@@ -19,8 +19,8 @@ jobs:
     - name: Check current run
       id: current
       run: |
-        echo "Check on current run did not passed."
-        echo "::set-output name=check::fail"
+        echo "Check on current run passed."
+        echo "::set-output name=check::pass"
 
     - name: Check previous runs
       if: steps.current.outputs.check == 'pass'
@@ -31,7 +31,6 @@ jobs:
     - name: Start ec2 instance
       id: ec2
       run: |
-        sleep 180
         if [ ${{ steps.current.outputs.check }} == 'pass' ]; then
           echo "I am starting ec2 instances."
           echo "::set-output name=started::yes"
@@ -51,7 +50,9 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Check current run
-      run: echo "Check on current run passed."
+      run: |
+        sleep 180
+        echo "Check on current run passed."
 
     - name: Stop ec2
       run: echo "I am stopping ec2 instances."
