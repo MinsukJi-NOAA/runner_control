@@ -16,6 +16,9 @@ jobs:
     - name: Check out
       uses: actions/checkout@v2
 
+    - name: Pre
+      run: echo ${{ steps.current.outputs.check }}
+
     - name: Check current run
       id: current
       run: |
