@@ -17,6 +17,8 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Check current run
+      env:
+        AUTH: ${{ secrets.GITHUB_TOKEN }}
       id: current
       run: |
         cd $GITHUB_WORKSPACE
