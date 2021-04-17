@@ -35,6 +35,7 @@ jobs:
         elif [ $current_run == 'failure' ]; then
           echo "Check on current run failed."
           echo "::set-output name=check::fail"
+        fi
 
     - name: Check previous runs
       if: steps.current.outputs.check == 'pass'
