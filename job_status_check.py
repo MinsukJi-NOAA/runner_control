@@ -14,7 +14,7 @@ def check_build(request):
     response = urlopen(request)
     data = json.loads(response.read().decode())["jobs"]
     ids = [x["id"] for x in data if re.search("Build", x["name"])]
-    if len(ids) != int(os.environ["NUM_BUILDS"]):
+    if len(ids) != int(os.environ["NO_BUILDS"]):
       continue
     all_completed = all([x["status"]=="completed" for x in data if x["id"] in ids])
   return all([x["conclusion"]=="success" for x in data if x["id"] in ids])

@@ -24,7 +24,7 @@ jobs:
         cd $GITHUB_WORKSPACE
         #echo "NO_BUILDS=$(./setup.py no_builds)" >> $GITHUB_ENV
         echo "NO_BUILDS=1" >> $GITHUB_ENV
-        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/${{ github.event.workflow_run.id }}/jobs
+        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/${{ github.event.workflow_run.id }}/jobs
         current_run=$(echo $url | ./job_status_check.py build_check)
         if [ $current_run == 'success' ]; then
           echo "Check on current run passed."
