@@ -71,7 +71,7 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE
         url=$GITHUB_API_URL/repos/GITHUB_REPOSITORY/actions/runs/${{ github.event.workflow_run.id }}
-        current_run=${echo $url | ./job_status_check.py test_check)
+        current_run=$(echo $url | ./job_status_check.py test_check)
         if [ $current_run == 'success' ]; then
           echo "All tests completed."
         elif [ $current_run == 'failure' ]; then
