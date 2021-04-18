@@ -38,4 +38,5 @@ jobs:
     steps:
     - name: Test step 1
       run: |
+        sleep 120
         echo "I am testing"

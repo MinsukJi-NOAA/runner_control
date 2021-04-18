@@ -66,8 +66,19 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Check current run
+      env:
+        AUTH: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        echo "Check on current run passed."
+        cd $GITHUB_WORKSPACE
+        url=$GITHUB_API_URL/repos/GITHUB_REPOSITORY/actions/runs/${{ github.event.workflow_run.id }}
+        current_run=${echo $url | ./job_status_check.py test_check)
+        if [ $current_run == 'success' ]; then
+          echo "Check on current run passed."
+          echo "::set-output name=check::pass"
+        elif [ $current_run == 'failure' ]; then
+          echo "Check on current run failed."
+          echo "::set-output name=check::fail"
+        fi
 
     - name: Stop ec2
       run: echo "I am stopping ec2 instances."
