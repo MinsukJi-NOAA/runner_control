@@ -73,11 +73,9 @@ jobs:
         url=$GITHUB_API_URL/repos/GITHUB_REPOSITORY/actions/runs/${{ github.event.workflow_run.id }}
         current_run=${echo $url | ./job_status_check.py test_check)
         if [ $current_run == 'success' ]; then
-          echo "Check on current run passed."
-          echo "::set-output name=check::pass"
+          echo "All tests completed."
         elif [ $current_run == 'failure' ]; then
-          echo "Check on current run failed."
-          echo "::set-output name=check::fail"
+          echo "I should not be here."
         fi
 
     - name: Stop ec2
