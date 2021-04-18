@@ -38,32 +38,36 @@ def check_ec2(url, request, myid):
   API endpoint: api.github.com/repos/{owner}/{repo}/actions/runs
   """
   response = urlopen(request)
-  data = json.loads(reponse.read().decode())["workflow_runs"]
+  data = json.loads(response.read().decode())["workflow_runs"]
   tformat="%Y-%m-%dT%H:%M:%SZ"
-  mytime = datetime.strptime(next(x["create_at"] for x in data if x["id"]==myid), tformat)
+  mytime = datetime.strptime(next(x["created_at"] for x in data if x["id"]==myid), tformat)
 
   workflows = {}
   in_progress = []
   for x in data:
-    time = datetime.strptime(x["created_at"], tformat)
-    dt = mytime - time
+    oldtime = datetime.strptime(x["created_at"], tformat)
+    dt = mytime - oldtime
     if x["name"] == "Helpers" and dt >= timedelta():
       token = os.environ["AUTH"]
-      request = Request(url=url+"/"+str(x["id"])+"/jobs")
+      request = Request(url+"/"+str(x["id"])+"/jobs")
       request.add_header("Authorization", "token %s" % token)
-      workflows[x["id"]] = urlopen(request)
-      in_progress.append(x["id"])
+      workflows[int(x["id"])] = urlopen(request)
+      in_progress.append(int(x["id"]))
 
   while True: 
-    time.sleep(20)
+    time.sleep(1)
     done = []
     for id, response in workflows.items():
+      print(in_progress)
       data = json.loads(response.read().decode())["jobs"]
       start_status = next(x["status"] for x in data if x["name"]=="Start runners")
       stop_status = next(x["status"] for x in data if x["name"]=="Stop runners")
-
+      print("id:", id)
+      print("start_status:", start_status)
+      print("stop_status:", stop_status)
       if start_status == "completed" and stop_status == "completed":
-        done.append(in_progress.pop(id))
+        in_progress.remove(id)
+        done.append(id)
     if len(in_progress) == 0:
       break
     else:
@@ -82,7 +86,7 @@ def main():
     else:
       print("failure")
   elif sys.argv[1] == "ec2_check":
-    myid = sys.argv[2]
+    myid = int(sys.argv[2])
     print(check_ec2(url, request, myid))
   elif sys.argv[1] == "test_check":
     if check_test(request):
