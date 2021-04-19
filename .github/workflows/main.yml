@@ -27,7 +27,7 @@ jobs:
     steps:
     - name: Build step 1
       run: |
-        sleep 90
+        sleep 20
         echo "I am building"
 
   test:
