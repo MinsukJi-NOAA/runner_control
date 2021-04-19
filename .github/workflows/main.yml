@@ -6,23 +6,38 @@ on:
     branches: ["master"]
 
 jobs:
-  setup:
-    name: Set up
+  runcheck:
+    name: Check if run-ci is requested
     runs-on: ubuntu-20.04
     outputs:
-      result: ${{ steps.check.outputs.result }}
+      cirun: ${{ steps.check.outputs.cirun }}
 
     steps:
-    - name: Set up step
+    - name: Check
       id: check
       run: |
-        echo "::set-output name=result::success"
+        if [ ${{ github.event_name }} == pull_request ]; then
+          sha=${{ github.event.pull_request.head.sha }}
+          url=$(echo ${{ github.event.pull_request.head.repo.git_commits_url }} | sed "s:{/sha}:/$sha:")
+        elif [ ${{ github.event_name }} == push ]; then
+          sha=${{ github.event.after }}
+          url=$(echo ${{ github.event.repository.git_commits_url }} | sed "s:{/sha}:/$sha:")
+        fi
+
+        message="$(curl -sS -H $app $url | jq '.message')"
+        echo $message | grep run-ci >/dev/null 2>&1 && d=$? || d=$?
+        if [ $d -eq 0 ]; then
+          echo "::set-output name=cirun::yes"
+        elif [ $d -eq 1 ]; then
+          echo "::set-output name=cirun::no"
+        fi
+        printf "Commit message is %s\n" "$message"
 
   build:
     name: Build
-    needs: setup
+    needs: runcheck
     runs-on: ubuntu-20.04
-    if: needs.setup.outputs.result == 'success'
+    if: needs.runcheck.outputs.cirun == 'yes'
 
     steps:
     - name: Build step 1
