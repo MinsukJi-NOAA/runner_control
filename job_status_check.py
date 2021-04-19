@@ -60,6 +60,9 @@ def check_ec2(url, request, myid):
     time.sleep(20)
     done = []
     for cid in reversed(in_progress):
+      print("done: ", done)
+      print("cid: ", cid)
+      print("in_progress: ", in_progress)
       data = json.loads(workflows[cid].read().decode())["jobs"]
       start_status = next((x["status"] for x in data if x["name"]=="Start runners"), "not found")
       stop_status = next((x["status"] for x in data if x["name"]=="Stop runners"), "not found")
