@@ -66,6 +66,8 @@ def check_ec2(url, request, myid):
       data = json.loads(urlopen(workflows[cid]).read().decode())["jobs"]
       start_status = next((x["status"] for x in data if x["name"]=="Start runners"), "not found")
       stop_status = next((x["status"] for x in data if x["name"]=="Stop runners"), "not found")
+      print("start_status: ", start_status)
+      print("stop_status: ", stop_status)
       if start_status == "not found" or stop_status == "not found":
         break
       if start_status == "completed" and stop_status == "completed":
