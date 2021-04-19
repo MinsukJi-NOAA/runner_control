@@ -51,7 +51,7 @@ def check_ec2(url, request, myid):
       token = os.environ["AUTH"]
       request = Request(url+"/"+str(x["id"])+"/jobs")
       request.add_header("Authorization", "token %s" % token)
-      workflows[x["id"]] = urlopen(request)
+      workflows[x["id"]] = request
       in_progress.append(x["id"])
 
   while True: 
@@ -63,7 +63,7 @@ def check_ec2(url, request, myid):
       print("done: ", done)
       print("cid: ", cid)
       print("in_progress: ", in_progress)
-      data = json.loads(workflows[cid].read().decode())["jobs"]
+      data = json.loads(urlopen(workflows[cid]).read().decode())["jobs"]
       start_status = next((x["status"] for x in data if x["name"]=="Start runners"), "not found")
       stop_status = next((x["status"] for x in data if x["name"]=="Stop runners"), "not found")
       if start_status == "not found" or stop_status == "not found":
