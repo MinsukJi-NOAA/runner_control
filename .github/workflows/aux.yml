@@ -45,7 +45,7 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE
         url=$GITHUB_API_URL/repos/GITHUB_REPOSITORY/actions/runs
-        previous_run=$(echo -n $url | ./job_status_check.py check_ec2 ${{ github.run_id }})
+        previous_run=$(echo -n $url | ./job_status_check.py ec2_check ${{ github.run_id }})
         if [ $previous_run == 'success' ]; then
           echo "Check on previous runs passed."
           echo "::set-output name=check::pass"
