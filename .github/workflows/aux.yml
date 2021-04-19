@@ -69,9 +69,13 @@ jobs:
       env:
         aws_instance_id: ${{ secrets.AWS_INSTANCE_ID }}
       run: |
-        sleep 60
         if [ ${{ steps.current.outputs.check }} == 'pass' ]; then
-          sleep 10
+          no_stopped=0
+          while [ $no_stopped -lt 2 ]; do
+            sleep 20
+            echo $no_stopped
+            no_stopped=$(aws ec2 describe-instances --instance-ids $aws_instance_id | jq -r '.Reservations[].Instances[].State.Name' | grep stopped | wc -l)
+          done
           echo "I am starting ec2 instances."
           aws ec2 start-instances --instance-ids $aws_instance_id
           echo "::set-output name=started::yes"
