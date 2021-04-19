@@ -89,7 +89,7 @@ def main():
     myid = int(sys.argv[2])
     if check_ec2(url, request, myid):
       print("success")
-    else
+    else:
       print("failure")
   elif sys.argv[1] == "test_check":
     if check_test(request):
