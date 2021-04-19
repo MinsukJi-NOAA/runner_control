@@ -43,12 +43,22 @@ jobs:
         echo "Check on previous runs passed."
         echo ${{ steps.current.outputs.check }}
 
+    - name: Configure AWS
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
     - name: Start ec2 instance
       id: ec2
+      env:
+        aws_instance_id: ${{ secrets.AWS_INSTANCE_ID }}
       run: |
         if [ ${{ steps.current.outputs.check }} == 'pass' ]; then
           sleep 10
           echo "I am starting ec2 instances."
+          aws ec2 start-instances --instance-ids $aws_instance_id
           echo "::set-output name=started::yes"
         elif [ ${{ steps.current.outputs.check }} == 'fail' ]; then
           echo "Sorry, I cannot start ec2 instances."
