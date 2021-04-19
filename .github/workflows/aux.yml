@@ -69,6 +69,7 @@ jobs:
       env:
         aws_instance_id: ${{ secrets.AWS_INSTANCE_ID }}
       run: |
+        sleep 60
         if [ ${{ steps.current.outputs.check }} == 'pass' ]; then
           sleep 10
           echo "I am starting ec2 instances."
