@@ -76,18 +76,6 @@ def check_ec2(url, request, myid):
       [workflows.pop(k) for k in done]
       [in_progress.remove(k) for k in done]
 
-#    for cid, response in workflows.items():
-#      data = json.loads(response.read().decode())["jobs"]
-#      start_status = next(x["status"] for x in data if x["name"]=="Start runners")
-#      stop_status = next(x["status"] for x in data if x["name"]=="Stop runners")
-#      if start_status == "completed" and stop_status == "completed":
-#        in_progress.remove(cid)
-#        done.append(cid)
-#    if len(in_progress) == 0:
-#      break
-#    else:
-#      [workflows.pop(k) for k in done]
-
   return True
 
     
