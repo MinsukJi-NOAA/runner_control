@@ -47,7 +47,7 @@ def check_ec2(url, request, myid):
   for x in data:
     oldtime = datetime.strptime(x["created_at"], tformat)
     dt = mytime - oldtime
-    if x["name"] == "Helpers" and dt >= timedelta():
+    if x["name"] == "Helpers" and dt >= timedelta() and x["id"] != myid:
       token = os.environ["AUTH"]
       request = Request(url+"/"+str(x["id"])+"/jobs")
       request.add_header("Authorization", "token %s" % token)
