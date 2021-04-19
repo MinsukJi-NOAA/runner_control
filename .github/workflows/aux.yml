@@ -28,7 +28,7 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE
         url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/${{ github.event.workflow_run.id }}/jobs
-        current_run=$(echo $url | ./job_status_check.py build_check)
+        current_run=$(echo -n $url | ./job_status_check.py build_check)
         if [ $current_run == 'success' ]; then
           echo "Check on current run passed."
           echo "::set-output name=check::pass"
@@ -38,13 +38,25 @@ jobs:
         fi
 
     - name: Check previous runs
+      env:
+        AUTH: ${{ secrets.GITHUB_TOKEN }}
+      id: previous
       if: steps.current.outputs.check == 'pass'
       run: |
-        echo "Check on previous runs passed."
-        echo ${{ steps.current.outputs.check }}
+        cd $GITHUB_WORKSPACE
+        url=$GITHUB_API_URL/repos/GITHUB_REPOSITORY/actions/runs
+        previous_run=$(echo -n $url | ./job_status_check.py check_ec2 ${{ github.run_id }})
+        if [ $previous_run == 'success' ]; then
+          echo "Check on previous runs passed."
+          echo "::set-output name=check::pass"
+        else
+          echo "Check on previous runs failed."
+          echo "::set-output name=check::fail"
+        fi
 
     - name: Configure AWS
       uses: aws-actions/configure-aws-credentials@v1
+      if: steps.current.outputs.check == 'pass' && steps.previous.outputs.check == 'pass'
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -52,13 +64,14 @@ jobs:
 
     - name: Start ec2 instance
       id: ec2
+      if: steps.current.outputs.check == 'pass' && steps.previous.outputs.check == 'pass'
       env:
         aws_instance_id: ${{ secrets.AWS_INSTANCE_ID }}
       run: |
         if [ ${{ steps.current.outputs.check }} == 'pass' ]; then
           sleep 10
           echo "I am starting ec2 instances."
-          aws ec2 start-instances --instance-ids $aws_instance_id
+          #aws ec2 start-instances --instance-ids $aws_instance_id
           echo "::set-output name=started::yes"
         elif [ ${{ steps.current.outputs.check }} == 'fail' ]; then
           echo "Sorry, I cannot start ec2 instances."

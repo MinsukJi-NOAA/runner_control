@@ -63,8 +63,6 @@ def check_ec2(url, request, myid):
       data = json.loads(response.read().decode())["jobs"]
       start_status = next(x["status"] for x in data if x["name"]=="Start runners")
       stop_status = next(x["status"] for x in data if x["name"]=="Stop runners")
-      print("start_status:", start_status)
-      print("stop_status:", stop_status)
       if start_status == "completed" and stop_status == "completed":
         in_progress.remove(cid)
         done.append(cid)
@@ -72,6 +70,8 @@ def check_ec2(url, request, myid):
       break
     else:
       [workflows.pop(k) for k in done]
+
+  return True
 
     
 def main():
@@ -87,7 +87,10 @@ def main():
       print("failure")
   elif sys.argv[1] == "ec2_check":
     myid = int(sys.argv[2])
-    print(check_ec2(url, request, myid))
+    if check_ec2(url, request, myid):
+      print("success")
+    else
+      print("failure")
   elif sys.argv[1] == "test_check":
     if check_test(request):
       print("success")
