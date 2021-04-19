@@ -58,10 +58,10 @@ def check_ec2(url, request, myid):
     time.sleep(1)
     done = []
     for cid, response in workflows.items():
-      print(in_progress)
-      print("cid:", cid)
+      #print(in_progress)
+      #print("cid:", cid)
       data = json.loads(response.read().decode())["jobs"]
-      print(data)
+      #print(data)
       start_status = next(x["status"] for x in data if x["name"]=="Start runners")
       stop_status = next(x["status"] for x in data if x["name"]=="Stop runners")
       if start_status == "completed" and stop_status == "completed":
