@@ -61,6 +61,7 @@ def check_ec2(url, request, myid):
       print(in_progress)
       print("cid:", cid)
       data = json.loads(response.read().decode())["jobs"]
+      print(data)
       start_status = next(x["status"] for x in data if x["name"]=="Start runners")
       stop_status = next(x["status"] for x in data if x["name"]=="Stop runners")
       if start_status == "completed" and stop_status == "completed":
