@@ -55,19 +55,33 @@ def check_ec2(url, request, myid):
       in_progress.append(x["id"])
 
   while True: 
-    time.sleep(20)
-    done = []
-    for cid, response in workflows.items():
-      data = json.loads(response.read().decode())["jobs"]
-      start_status = next(x["status"] for x in data if x["name"]=="Start runners")
-      stop_status = next(x["status"] for x in data if x["name"]=="Stop runners")
-      if start_status == "completed" and stop_status == "completed":
-        in_progress.remove(cid)
-        done.append(cid)
     if len(in_progress) == 0:
       break
-    else:
+    time.sleep(20)
+    done = []
+    for cid in reversed(in_progress):
+      data = json.loads(workflows[cid].read().decode())["jobs"]
+      start_status = next((x["status"] for x in data if x["name"]=="Start runners"), "not found")
+      stop_status = next((x["status"] for x in data if x["name"]=="Stop runners"), "not found")
+      if start_status == "not found" or stop_status == "not found":
+        break
+      if start_status == "completed" and stop_status == "completed":
+        done.append(cid)
+    if len(done) != 0:
       [workflows.pop(k) for k in done]
+      [in_progress.remove(k) for k in done]
+
+#    for cid, response in workflows.items():
+#      data = json.loads(response.read().decode())["jobs"]
+#      start_status = next(x["status"] for x in data if x["name"]=="Start runners")
+#      stop_status = next(x["status"] for x in data if x["name"]=="Stop runners")
+#      if start_status == "completed" and stop_status == "completed":
+#        in_progress.remove(cid)
+#        done.append(cid)
+#    if len(in_progress) == 0:
+#      break
+#    else:
+#      [workflows.pop(k) for k in done]
 
   return True
 
