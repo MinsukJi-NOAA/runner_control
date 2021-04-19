@@ -45,8 +45,7 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE
         url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs
-        echo -n $url | ./job_status_check.py ec2_check ${{ github.run_id }} 2>&1
-        previous_run="success"
+        previous_run=$(echo -n $url | ./job_status_check.py ec2_check ${{ github.run_id }})
         if [ $previous_run == 'success' ]; then
           echo "Check on previous runs passed."
           echo "::set-output name=check::pass"
@@ -73,9 +72,10 @@ jobs:
           no_stopped=0
           while [ $no_stopped -lt 2 ]; do
             sleep 20
-            echo $no_stopped
+            echo "no_stopped: $no_stopped"
             no_stopped=$(aws ec2 describe-instances --instance-ids $aws_instance_id | jq -r '.Reservations[].Instances[].State.Name' | grep stopped | wc -l)
           done
+          echo "no_stopped: $no_stopped"
           echo "I am starting ec2 instances."
           aws ec2 start-instances --instance-ids $aws_instance_id
           echo "::set-output name=started::yes"
