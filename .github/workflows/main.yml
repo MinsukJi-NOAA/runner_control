@@ -18,6 +18,7 @@ jobs:
     - name: Check
       id: check
       run: |
+        sleep 60
         if [ ${{ github.event_name }} == pull_request ]; then
           sha=${{ github.event.pull_request.head.sha }}
           url=$(echo ${{ github.event.pull_request.head.repo.git_commits_url }} | sed "s:{/sha}:/$sha:")
