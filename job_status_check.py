@@ -39,7 +39,7 @@ def check_startrunner(request):
   """
   completed = False
   while not completed:
-    time.sleep(20)
+    time.sleep(40)
     response = urlopen(request)
     data = json.loads(response.read().decode())["jobs"]
     cid = next((x["id"] for x in data if x["name"]=="Start runners"), "not found")
@@ -92,9 +92,12 @@ def check_ec2(url, request, myid):
     
 def main():
   url = sys.stdin.read()
-  token = os.environ["AUTH"]
   request = Request(url)
-  request.add_header("Authorization", "token %s" % token)
+  try:
+    token = os.environ["AUTH"]
+    request.add_header("Authorization", "token %s" % token)
+  except KeyError:
+    pass
 
   if sys.argv[1] == "build_check":
     no_builds = int(sys.argv[2])
