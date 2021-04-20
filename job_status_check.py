@@ -41,7 +41,7 @@ def check_startrunner(request):
   """
   completed = False
   while not completed:
-    time.sleep(40)
+    time.sleep(60)
     response = urlopen(request)
     data = json.loads(response.read().decode())["jobs"]
     cid = next((x["id"] for x in data if x["name"]=="Start runners"), "not found")
