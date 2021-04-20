@@ -46,7 +46,7 @@ def check_startrunner(request):
     if cid == "not found":
       continue
     completed = next(x["status"]=="completed" for x in data if x["id"]==cid)
-  return (x["conclusion"]=="success" for x in data if x["id"]==cid)
+  return next(x["conclusion"]=="success" for x in data if x["id"]==cid)
 
 
 def check_ec2(url, request, myid):
