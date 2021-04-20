@@ -77,7 +77,7 @@ jobs:
   test:
     name: Test
     needs: waitec2
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
 
     steps:
     - name: Test step 1

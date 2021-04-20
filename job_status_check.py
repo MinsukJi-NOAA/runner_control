@@ -64,8 +64,8 @@ def check_ec2(url, request, myid):
     oldtime = datetime.strptime(x["created_at"], tformat)
     dt = mytime - oldtime
     if x["name"] == "Helpers" and dt >= timedelta() and x["id"] != myid:
-      token = os.environ["AUTH"]
       request = Request(url+"/"+str(x["id"])+"/jobs")
+      token = os.environ["AUTH"]
       request.add_header("Authorization", "token %s" % token)
       workflows[x["id"]] = request
       in_progress.append(x["id"])
