@@ -33,6 +33,22 @@ def check_test(request):
   return completed
 
 
+def check_startrunner(request):
+  """ Check if current startrunner job is completed
+  API endpoint: api.github.com/repos/{owner}/{repo}/actions/runs/{run_id}/jobs
+  """
+  completed = False
+  while not completed:
+    time.sleep(20)
+    response = urlopen(request)
+    data = json.loads(response.read().decode())["jobs"]
+    cid = next((x["id"] for x in data if x["name"]=="Start runners"), "not found")
+    if cid == "not found":
+      continue
+    completed = next(x["status"]=="completed" for x in data if x["id"]==cid)
+  return (x["conclusion"]=="success" for x in data if x["id"]==cid)
+
+
 def check_ec2(url, request, myid):
   """ Check if all previous workflow runs started and stopped ec2 instances
   API endpoint: api.github.com/repos/{owner}/{repo}/actions/runs
@@ -94,6 +110,11 @@ def main():
       print("failure")
   elif sys.argv[1] == "test_check":
     if check_test(request):
+      print("success")
+    else:
+      print("failure")
+  elif sys.argv[1] == "startrunner_check":
+    if check_startrunner(request):
       print("success")
     else:
       print("failure")

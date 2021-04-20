@@ -16,6 +16,15 @@ jobs:
     - name: Check out
       uses: actions/checkout@v2
 
+    - name: Share run id
+      run: echo -n ${{ github.run_id }} >${{ github.workspace }}/helper_id_file
+
+    - name: Cache run id
+      uses: actions/cache@v2
+      with:
+        path: ${{ github.workspace }}/helper_id_file
+        key: helperid-${{ github.event.workflow_run.id }}
+
     - name: Check current run
       env:
         AUTH: ${{ secrets.GITHUB_TOKEN }}
