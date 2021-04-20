@@ -75,9 +75,14 @@ jobs:
         fi
 
   test:
-    name: Test
+    name: Test ${{ matrix.trial }}
     needs: waitec2
     runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        trial: [1, 2, 3]
+
 
     steps:
     - name: Test step 1
