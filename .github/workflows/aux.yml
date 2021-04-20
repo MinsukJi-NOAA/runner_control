@@ -16,11 +16,6 @@ jobs:
     - name: Check out
       uses: actions/checkout@v2
 
-    - name: Number of builds
-      run: |
-        echo "NO_BUILDS=1" >> $GITHUB_ENV
-        #echo "NO_BUILDS=$(./setup.py no_builds)" >> $GITHUB_ENV
-
     - name: Check current run
       env:
         AUTH: ${{ secrets.GITHUB_TOKEN }}
@@ -28,7 +23,7 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE
         url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/${{ github.event.workflow_run.id }}/jobs
-        current_run=$(echo -n $url | ./job_status_check.py build_check)
+        current_run=$(echo -n $url | ./job_status_check.py build_check $(./setup.py no_builds))
         if [ $current_run == 'success' ]; then
           echo "Check on current run passed."
           echo "::set-output name=check::pass"

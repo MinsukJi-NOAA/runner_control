@@ -4,7 +4,7 @@ import os, re, sys, json, time
 from urllib.request import urlopen, Request
 from datetime import datetime, timedelta
 
-def check_build(request):
+def check_build(request, no_builds):
   """ Check if all build jobs are completed successfully
   API endpoint: api.github.com/repos/{owner}/{repo}/actions/runs/{run_id}/jobs
   """
@@ -14,7 +14,7 @@ def check_build(request):
     response = urlopen(request)
     data = json.loads(response.read().decode())["jobs"]
     ids = [x["id"] for x in data if re.search("Build", x["name"])]
-    if len(ids) != int(os.environ["NO_BUILDS"]):
+    if len(ids) != no_builds:
       continue
     all_completed = all([x["status"]=="completed" for x in data if x["id"] in ids])
   return all([x["conclusion"]=="success" for x in data if x["id"] in ids])
@@ -81,7 +81,8 @@ def main():
   request.add_header("Authorization", "token %s" % token)
 
   if sys.argv[1] == "build_check":
-    if check_build(request):
+    no_builds = int(sys.argv[2])
+    if check_build(request, no_builds):
       print("success")
     else:
       print("failure")
