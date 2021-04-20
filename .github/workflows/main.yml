@@ -50,9 +50,6 @@ jobs:
       run: |
         sleep 20
         echo "I am building"
-        if [ ${{ matrix.build_no }} == 1 ]; then
-          exit 1
-        fi
 
   waitec2:
     name: Wait
@@ -88,9 +85,11 @@ jobs:
       matrix:
         trial: [1, 2, 3]
 
-
     steps:
     - name: Test step 1
       run: |
         sleep 60
         echo "I am testing"
+        if [ ${{ matrix.trial }} == 1 ]; then
+          exit 1
+        fi
