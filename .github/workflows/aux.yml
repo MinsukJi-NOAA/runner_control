@@ -35,7 +35,6 @@ jobs:
         AUTH: ${{ secrets.GITHUB_TOKEN }}
       id: current
       run: |
-        cd $GITHUB_WORKSPACE
         url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/${{ github.event.workflow_run.id }}/jobs
         current_run=$(echo -n $url | ./job_status_check.py build_check $(./setup.py no_builds))
         if [ $current_run == 'success' ]; then
@@ -52,7 +51,6 @@ jobs:
       id: previous
       if: steps.current.outputs.check == 'pass'
       run: |
-        cd $GITHUB_WORKSPACE
         url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs
         previous_run=$(echo -n $url | ./job_status_check.py ec2_check ${{ github.run_id }})
         if [ $previous_run == 'success' ]; then
@@ -107,7 +105,6 @@ jobs:
       env:
         AUTH: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        cd $GITHUB_WORKSPACE
         url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/${{ github.event.workflow_run.id }}
         current_run=$(echo $url | ./job_status_check.py test_check)
         if [ $current_run == 'success' ]; then
@@ -126,6 +123,4 @@ jobs:
     - name: Stop ec2
       env:
         aws_instance_id: ${{ secrets.AWS_INSTANCE_ID }}
-      run: |
-        echo "I am stopping ec2 instances."
-        aws ec2 stop-instances --instance-ids $aws_instance_id
+      run: aws ec2 stop-instances --instance-ids $aws_instance_id
