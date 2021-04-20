@@ -50,6 +50,9 @@ jobs:
       run: |
         sleep 20
         echo "I am building"
+        if [ ${{ matrix.build_no }} == 1 ]; then
+          exit 1
+        fi
 
   waitec2:
     name: Wait
@@ -69,9 +72,7 @@ jobs:
     - name: Check if ec2 instances started
       run: |
         helper_id=$(cat ${{ github.workspace }}/helper_id_file)
-        echo "helper_id is $helper_id"
         url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$helper_id/jobs
-        echo "url is $url"
         ec2_started=$(echo -n $url | ./job_status_check.py startrunner_check)
         if [ $ec2_started != 'success' ]; then
           echo "EC2 instances did not start"
