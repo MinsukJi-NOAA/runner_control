@@ -53,6 +53,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
+    - name: Check out
       uses: actions/checkout@v2
 
     - name: Retrieve helper id
