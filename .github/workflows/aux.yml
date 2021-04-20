@@ -6,6 +6,20 @@ on:
       - requested
 
 jobs:
+  pre:
+    name: Preprocess
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Share run id
+      run: echo -n ${{ github.run_id }} >${{ github.workspace }}/helper_id_file
+
+    - name: Cache run id
+      uses: actions/cache@v2
+      with:
+        path: ${{ github.workspace }}/helper_id_file
+        key: helperid-${{ github.event.workflow_run.id }}
+
   startrunner:
     name: Start runners
     runs-on: ubuntu-20.04

@@ -33,6 +33,22 @@ def check_test(request):
   return completed
 
 
+def check_startrunner(request):
+  """ Check if current startrunner job is completed
+  API endpoint: api.github.com/repos/{owner}/{repo}/actions/runs/{run_id}/jobs
+  """
+  completed = False
+  while not completed:
+    time.sleep(40)
+    response = urlopen(request)
+    data = json.loads(response.read().decode())["jobs"]
+    cid = next((x["id"] for x in data if x["name"]=="Start runners"), "not found")
+    if cid == "not found":
+      continue
+    completed = next(x["status"]=="completed" for x in data if x["id"]==cid)
+  return next(x["conclusion"]=="success" for x in data if x["id"]==cid)
+
+
 def check_ec2(url, request, myid):
   """ Check if all previous workflow runs started and stopped ec2 instances
   API endpoint: api.github.com/repos/{owner}/{repo}/actions/runs
@@ -48,8 +64,8 @@ def check_ec2(url, request, myid):
     oldtime = datetime.strptime(x["created_at"], tformat)
     dt = mytime - oldtime
     if x["name"] == "Helpers" and dt >= timedelta() and x["id"] != myid:
-      token = os.environ["AUTH"]
       request = Request(url+"/"+str(x["id"])+"/jobs")
+      token = os.environ["AUTH"]
       request.add_header("Authorization", "token %s" % token)
       workflows[x["id"]] = request
       in_progress.append(x["id"])
@@ -76,9 +92,12 @@ def check_ec2(url, request, myid):
     
 def main():
   url = sys.stdin.read()
-  token = os.environ["AUTH"]
   request = Request(url)
-  request.add_header("Authorization", "token %s" % token)
+  try:
+    token = os.environ["AUTH"]
+    request.add_header("Authorization", "token %s" % token)
+  except KeyError:
+    pass
 
   if sys.argv[1] == "build_check":
     no_builds = int(sys.argv[2])
@@ -94,6 +113,11 @@ def main():
       print("failure")
   elif sys.argv[1] == "test_check":
     if check_test(request):
+      print("success")
+    else:
+      print("failure")
+  elif sys.argv[1] == "startrunner_check":
+    if check_startrunner(request):
       print("success")
     else:
       print("failure")

@@ -36,10 +36,14 @@ jobs:
         printf "Commit message is %s\n" "$message"
 
   build:
-    name: Build
+    name: Build ${{ matrix.build_no }}
     needs: runcheck
     runs-on: ubuntu-20.04
     if: needs.runcheck.outputs.cirun == 'yes'
+    strategy:
+      fail-fast: false
+      matrix:
+        build_no: [1, 2, 3]
 
     steps:
     - name: Build step 1
@@ -47,13 +51,42 @@ jobs:
         sleep 20
         echo "I am building"
 
-  test:
-    name: Test
+  waitec2:
+    name: Wait
     needs: build
     runs-on: ubuntu-20.04
 
     steps:
+    - name: Check out
+      uses: actions/checkout@v2
+
+    - name: Retrieve helper id
+      uses: actions/cache@v2
+      with:
+        path: ${{ github.workspace }}/helper_id_file
+        key: helperid-${{ github.run_id }}
+
+    - name: Check if ec2 instances started
+      run: |
+        helper_id=$(cat ${{ github.workspace }}/helper_id_file)
+        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$helper_id/jobs
+        ec2_started=$(echo -n $url | ./job_status_check.py startrunner_check)
+        if [ $ec2_started != 'success' ]; then
+          echo "EC2 instances did not start"
+          exit 1
+        fi
+
+  test:
+    name: Test ${{ matrix.trial }}
+    needs: waitec2
+    runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        trial: [1, 2, 3]
+
+    steps:
     - name: Test step 1
       run: |
-        sleep 120
+        sleep 60
         echo "I am testing"
