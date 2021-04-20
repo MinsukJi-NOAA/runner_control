@@ -90,6 +90,3 @@ jobs:
       run: |
         sleep 60
         echo "I am testing"
-        #if [ ${{ matrix.trial }} == 1 ]; then
-        #  exit 1
-        #fi
