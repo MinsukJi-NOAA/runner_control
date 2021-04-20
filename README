@@ -4,4 +4,5 @@ Check algorithms to be used in starting and stopping ec2 instances. Mainly deals
 5
 6
 #jw test1
-#jw test2 run-ci"
+#jw test2 run-ci
+#je test with testci branch
