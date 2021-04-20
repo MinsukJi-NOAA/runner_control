@@ -36,10 +36,14 @@ jobs:
         printf "Commit message is %s\n" "$message"
 
   build:
-    name: Build
+    name: Build ${{ matrix.build_no }}
     needs: runcheck
     runs-on: ubuntu-20.04
     if: needs.runcheck.outputs.cirun == 'yes'
+    strategy:
+      fail-fast: false
+      matrix:
+        build_no: [1, 2, 3]
 
     steps:
     - name: Build step 1
@@ -87,5 +91,5 @@ jobs:
     steps:
     - name: Test step 1
       run: |
-        sleep 120
+        sleep 60
         echo "I am testing"
