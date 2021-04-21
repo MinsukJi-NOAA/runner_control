@@ -23,11 +23,11 @@ jobs:
         cd ~
         pwd
         ls -alF
-        echo -n ${{ github.run_id }} >${{ github.workspace }}/id_file
+        echo -n ${{ github.run_id }} >~/id_file
 
     - uses: actions/cache@v2
       with:
-        path: ${{ github.workspace }}/id_file
+        path: ~/id_file
         key: helperid-${{ github.event.workflow_run.id }}
 
   startrunner:
