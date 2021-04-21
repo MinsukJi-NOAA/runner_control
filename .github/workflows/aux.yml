@@ -7,6 +7,8 @@ on:
 env:
   base_url: $GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs
   AUTH: ${{ secrets.GITHUB_TOKEN }}
+  aws_instance_id: ${{ secrets.AWS_INSTANCE_ID }}
+  no_instances: 2
 
 jobs:
   pre:
@@ -59,11 +61,9 @@ jobs:
     - name: Start ec2 instances
       id: ec2
       if: steps.current.outputs.check == 'pass'
-      env:
-        aws_instance_id: ${{ secrets.AWS_INSTANCE_ID }}
       run: |
         no_stopped=0
-        while [ $no_stopped -lt 2 ]; do
+        while [ $no_stopped -lt $no_instances ]; do
           sleep 20
           no_stopped=$(aws ec2 describe-instances --instance-ids $aws_instance_id \
             | jq -r '.Reservations[].Instances[].State.Name' | grep stopped | wc -l)
@@ -93,6 +93,4 @@ jobs:
         aws-region: us-east-1
 
     - name: Stop ec2 instances
-      env:
-        aws_instance_id: ${{ secrets.AWS_INSTANCE_ID }}
       run: aws ec2 stop-instances --instance-ids $aws_instance_id
