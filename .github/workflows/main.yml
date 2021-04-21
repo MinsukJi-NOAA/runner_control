@@ -70,7 +70,7 @@ jobs:
       run: |
         helper_id=$(cat ${{ github.workspace }}/helper_id_file)
         url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$helper_id/jobs
-        ec2_started=$(echo -n $url | ./job_status_check.py startrunner_check)
+        ec2_started=$(echo -n $url | ./check_status.py startrunner)
         if [ $ec2_started != 'success' ]; then
           echo "EC2 instances did not start"
           exit 1

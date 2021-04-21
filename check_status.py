@@ -101,24 +101,24 @@ def main():
   except KeyError:
     pass
 
-  if sys.argv[1] == "build_check":
+  if sys.argv[1] == "build":
     no_builds = int(sys.argv[2])
     if check_build(request, no_builds):
       print("success")
     else:
       print("failure")
-  elif sys.argv[1] == "ec2_check":
+  elif sys.argv[1] == "ec2":
     myid = int(sys.argv[2])
     if check_ec2(url, request, myid):
       print("success")
     else:
       print("failure")
-  elif sys.argv[1] == "test_check":
+  elif sys.argv[1] == "test":
     if check_test(request):
       print("success")
     else:
       print("failure")
-  elif sys.argv[1] == "startrunner_check":
+  elif sys.argv[1] == "startrunner":
     if check_startrunner(request):
       print("success")
     else:
