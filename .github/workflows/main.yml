@@ -20,7 +20,8 @@ jobs:
       run: |
         if [ ${{ github.event_name }} == pull_request ]; then
           sha=${{ github.event.pull_request.head.sha }}
-          url=$(echo ${{ github.event.pull_request.head.repo.git_commits_url }} | sed "s:{/sha}:/$sha:")
+          url=$(echo ${{ github.event.pull_request.head.repo.git_commits_url }} \
+            | sed "s:{/sha}:/$sha:")
         elif [ ${{ github.event_name }} == push ]; then
           sha=${{ github.event.after }}
           url=$(echo ${{ github.event.repository.git_commits_url }} | sed "s:{/sha}:/$sha:")
@@ -52,16 +53,14 @@ jobs:
         echo "I am building"
 
   waitec2:
-    name: Wait
+    name: Wait for ec2 instances to start
     needs: build
     runs-on: ubuntu-20.04
 
     steps:
-    - name: Check out
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-    - name: Retrieve helper id
-      uses: actions/cache@v2
+    - uses: actions/cache@v2
       with:
         path: ${{ github.workspace }}/helper_id_file
         key: helperid-${{ github.run_id }}
@@ -72,7 +71,7 @@ jobs:
         url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$helper_id/jobs
         ec2_started=$(echo -n $url | ./check_status.py startrunner)
         if [ $ec2_started != 'success' ]; then
-          echo "EC2 instances did not start"
+          echo "ec2 instances did not start"
           exit 1
         fi
 
