@@ -49,8 +49,11 @@ jobs:
     steps:
     - name: Build step 1
       run: |
-        sleep 20
+        sleep 60
         echo "I am building"
+        if [[ ${{ matrix.build_no }} == 1 || ${{ matrix.build_no }} == 2 ]]; then
+          exit 1
+        fi
 
   waitec2:
     name: Wait for ec2 instances to start
@@ -87,5 +90,5 @@ jobs:
     steps:
     - name: Test step 1
       run: |
-        sleep 60
+        sleep 90
         echo "I am testing"
