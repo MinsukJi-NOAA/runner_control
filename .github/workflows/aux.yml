@@ -21,6 +21,7 @@ jobs:
         pwd
         ls -alF
         cd ~
+        pwd
         ls -alF
         echo -n ${{ github.run_id }} >${{ github.workspace }}/id_file
 
