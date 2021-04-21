@@ -62,12 +62,12 @@ jobs:
 
     - uses: actions/cache@v2
       with:
-        path: ${{ github.workspace }}/helper_id_file
+        path: ${{ github.workspace }}/id_file
         key: helperid-${{ github.run_id }}
 
     - name: Check if ec2 instances started
       run: |
-        helper_id=$(cat ${{ github.workspace }}/helper_id_file)
+        helper_id=$(cat ${{ github.workspace }}/id_file)
         url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$helper_id/jobs
         ec2_started=$(echo -n $url | ./check_status.py startrunner)
         if [ $ec2_started != 'success' ]; then
