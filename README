@@ -2,4 +2,5 @@ Check algorithms to be used in starting and stopping ec2 instances. Mainly deals
 2
 3
 
-#je test1
+#jw test1
+#jw test2; run-ci
