@@ -50,6 +50,11 @@ jobs:
     - name: Build step 1
       run: |
         sleep 20
+        pwd
+        ls -alF
+        cd ~
+        pwd
+        ls -alF
         echo "I am building"
 
   waitec2:
@@ -88,4 +93,9 @@ jobs:
     - name: Test step 1
       run: |
         sleep 60
+        pwd
+        ls -alF
+        cd ~
+        pwd
+        ls -alF
         echo "I am testing"

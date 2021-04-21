@@ -17,7 +17,12 @@ jobs:
 
     steps:
     - name: Share helper id
-      run: echo -n ${{ github.run_id }} >${{ github.workspace }}/id_file
+      run: |
+        pwd
+        ls -alF
+        cd ~
+        ls -alF
+        echo -n ${{ github.run_id }} >${{ github.workspace }}/id_file
 
     - uses: actions/cache@v2
       with:
