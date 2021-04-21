@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: ["master"]
 env:
-  app: "Accept:application/vnd.github.v3+json"
+  app: Accept:application/vnd.github.v3+json
 
 jobs:
   runcheck:

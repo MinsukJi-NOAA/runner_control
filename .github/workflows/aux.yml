@@ -4,6 +4,8 @@ on:
     workflows: ["Pull Request Tests"]
     types:
       - requested
+env:
+  base_url: $GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs
 
 jobs:
   pre:
@@ -35,7 +37,7 @@ jobs:
         AUTH: ${{ secrets.GITHUB_TOKEN }}
       id: current
       run: |
-        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/${{ github.event.workflow_run.id }}/jobs
+        eval url=$base_url/${{ github.event.workflow_run.id }}/jobs
         current_run=$(echo -n $url | ./job_status_check.py build_check $(./setup.py no_builds))
         if [ $current_run == 'success' ]; then
           echo "Check on current run passed."
@@ -51,7 +53,7 @@ jobs:
       id: previous
       if: steps.current.outputs.check == 'pass'
       run: |
-        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs
+        eval url=$base_url
         previous_run=$(echo -n $url | ./job_status_check.py ec2_check ${{ github.run_id }})
         if [ $previous_run == 'success' ]; then
           echo "Check on previous runs passed."
@@ -105,7 +107,7 @@ jobs:
       env:
         AUTH: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/${{ github.event.workflow_run.id }}
+        eval url=$base_url/${{ github.event.workflow_run.id }}
         current_run=$(echo $url | ./job_status_check.py test_check)
         if [ $current_run == 'success' ]; then
           echo "All tests completed."
