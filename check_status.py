@@ -32,7 +32,6 @@ def check_test(request):
     response = urlopen(request)
     data = json.loads(response.read().decode())
     completed = (data["status"]=="completed")
-  return completed
 
 
 def check_startrunner(request):
@@ -89,8 +88,6 @@ def check_ec2(url, request, myid):
       [workflows.pop(k) for k in done]
       [in_progress.remove(k) for k in done]
 
-  return True
-
     
 def main():
   url = sys.stdin.read()
@@ -109,15 +106,9 @@ def main():
       print("failure")
   elif sys.argv[1] == "ec2":
     myid = int(sys.argv[2])
-    if check_ec2(url, request, myid):
-      print("success")
-    else:
-      print("failure")
+    check_ec2(url, request, myid)
   elif sys.argv[1] == "test":
-    if check_test(request):
-      print("success")
-    else:
-      print("failure")
+    check_test(request)
   elif sys.argv[1] == "startrunner":
     if check_startrunner(request):
       print("success")

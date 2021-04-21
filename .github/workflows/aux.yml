@@ -45,24 +45,17 @@ jobs:
           echo "::set-output name=check::fail"
         fi
 
-    - name: Check if all previous runs are done with ec2
+    - name: Check all previous runs finish using ec2
       id: previous
       if: steps.current.outputs.check == 'pass'
       env:
         AUTH: ${{ secrets.GITHUB_TOKEN }}
       run: |
         eval url=$base_url
-        e_r=$(echo -n $url | ./check_status.py ec2 ${{ github.run_id }})
-        if [ $e_r == 'success' ]; then
-          echo "Check on previous runs passed."
-          echo "::set-output name=check::pass"
-        else
-          echo "Check on previous runs failed."
-          echo "::set-output name=check::fail"
-        fi
+        echo -n $url | ./check_status.py ec2 ${{ github.run_id }}
 
     - uses: aws-actions/configure-aws-credentials@v1
-      if: steps.current.outputs.check == 'pass' && steps.previous.outputs.check == 'pass'
+      if: steps.current.outputs.check == 'pass'
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -70,22 +63,19 @@ jobs:
 
     - name: Start ec2 instances
       id: ec2
-      if: steps.current.outputs.check == 'pass' && steps.previous.outputs.check == 'pass'
+      if: steps.current.outputs.check == 'pass'
       env:
         aws_instance_id: ${{ secrets.AWS_INSTANCE_ID }}
       run: |
-        if [ ${{ steps.current.outputs.check }} == 'pass' ]; then
-          no_stopped=0
-          while [ $no_stopped -lt 2 ]; do
-            sleep 20
-            no_stopped=$(aws ec2 describe-instances --instance-ids $aws_instance_id | jq -r '.Reservations[].Instances[].State.Name' | grep stopped | wc -l)
-            echo "no_stopped: $no_stopped"
-          done
-          aws ec2 start-instances --instance-ids $aws_instance_id
-          echo "::set-output name=started::yes"
-        elif [ ${{ steps.current.outputs.check }} == 'fail' ]; then
-          echo "::set-output name=started::no"
-        fi
+        no_stopped=0
+        while [ $no_stopped -lt 2 ]; do
+          sleep 20
+          no_stopped=$(aws ec2 describe-instances --instance-ids $aws_instance_id \
+            | jq -r '.Reservations[].Instances[].State.Name' | grep stopped | wc -l)
+          echo "no_stopped: $no_stopped"
+        done
+        aws ec2 start-instances --instance-ids $aws_instance_id
+        echo "::set-output name=started::yes"
 
   stoprunner:
     name: Stop runners
@@ -101,12 +91,7 @@ jobs:
         AUTH: ${{ secrets.GITHUB_TOKEN }}
       run: |
         eval url=$base_url/${{ github.event.workflow_run.id }}
-        t_r=$(echo $url | ./check_status.py test)
-        if [ $t_r == 'success' ]; then
-          echo "All tests completed."
-        elif [ $t_r == 'failure' ]; then
-          echo "I should not be here."
-        fi
+        echo $url | ./check_status.py test
 
     - uses: aws-actions/configure-aws-credentials@v1
       with:
