@@ -14,6 +14,8 @@ def check_build(request, no_builds):
     response = urlopen(request)
     data = json.loads(response.read().decode())["jobs"]
     ids = [x["id"] for x in data if re.search("Build", x["name"])]
+    if len(ids) == 1 and next(re.search("matrix", x["name"]) for x in data if x["id"] in ids):
+      break
     if len(ids) != no_builds:
       continue
     all_completed = all([x["status"]=="completed" for x in data if x["id"] in ids])
@@ -30,7 +32,6 @@ def check_test(request):
     response = urlopen(request)
     data = json.loads(response.read().decode())
     completed = (data["status"]=="completed")
-  return completed
 
 
 def check_startrunner(request):
@@ -39,7 +40,7 @@ def check_startrunner(request):
   """
   completed = False
   while not completed:
-    time.sleep(40)
+    time.sleep(60)
     response = urlopen(request)
     data = json.loads(response.read().decode())["jobs"]
     cid = next((x["id"] for x in data if x["name"]=="Start runners"), "not found")
@@ -87,8 +88,6 @@ def check_ec2(url, request, myid):
       [workflows.pop(k) for k in done]
       [in_progress.remove(k) for k in done]
 
-  return True
-
     
 def main():
   url = sys.stdin.read()
@@ -99,24 +98,18 @@ def main():
   except KeyError:
     pass
 
-  if sys.argv[1] == "build_check":
+  if sys.argv[1] == "build":
     no_builds = int(sys.argv[2])
     if check_build(request, no_builds):
       print("success")
     else:
       print("failure")
-  elif sys.argv[1] == "ec2_check":
+  elif sys.argv[1] == "ec2":
     myid = int(sys.argv[2])
-    if check_ec2(url, request, myid):
-      print("success")
-    else:
-      print("failure")
-  elif sys.argv[1] == "test_check":
-    if check_test(request):
-      print("success")
-    else:
-      print("failure")
-  elif sys.argv[1] == "startrunner_check":
+    check_ec2(url, request, myid)
+  elif sys.argv[1] == "test":
+    check_test(request)
+  elif sys.argv[1] == "startrunner":
     if check_startrunner(request):
       print("success")
     else:

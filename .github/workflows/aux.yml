@@ -4,6 +4,11 @@ on:
     workflows: ["Pull Request Tests"]
     types:
       - requested
+env:
+  base_url: $GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs
+  AUTH: ${{ secrets.GITHUB_TOKEN }}
+  aws_instance_id: ${{ secrets.AWS_INSTANCE_ID }}
+  no_instances: 2
 
 jobs:
   pre:
@@ -11,13 +16,12 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-    - name: Share run id
-      run: echo -n ${{ github.run_id }} >${{ github.workspace }}/helper_id_file
+    - name: Share helper id
+      run: echo -n ${{ github.run_id }} >${{ github.workspace }}/id_file
 
-    - name: Cache run id
-      uses: actions/cache@v2
+    - uses: actions/cache@v2
       with:
-        path: ${{ github.workspace }}/helper_id_file
+        path: ${{ github.workspace }}/id_file
         key: helperid-${{ github.event.workflow_run.id }}
 
   startrunner:
@@ -27,71 +31,46 @@ jobs:
       started: ${{ steps.ec2.outputs.started }}
 
     steps:
-    - name: Check out
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-    - name: Check current run
-      env:
-        AUTH: ${{ secrets.GITHUB_TOKEN }}
+    - name: Check all builds are complete and successful
       id: current
       run: |
-        cd $GITHUB_WORKSPACE
-        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/${{ github.event.workflow_run.id }}/jobs
-        current_run=$(echo -n $url | ./job_status_check.py build_check $(./setup.py no_builds))
-        if [ $current_run == 'success' ]; then
-          echo "Check on current run passed."
+        eval url=$base_url/${{ github.event.workflow_run.id }}/jobs
+        b_r=$(echo -n $url | ./check_status.py build $(./setup.py no_builds))
+        if [ $b_r == 'success' ]; then
           echo "::set-output name=check::pass"
-        elif [ $current_run == 'failure' ]; then
-          echo "Check on current run failed."
+        elif [ $b_r == 'failure' ]; then
           echo "::set-output name=check::fail"
         fi
 
-    - name: Check previous runs
-      env:
-        AUTH: ${{ secrets.GITHUB_TOKEN }}
+    - name: Check all previous runs finish using ec2
       id: previous
       if: steps.current.outputs.check == 'pass'
       run: |
-        cd $GITHUB_WORKSPACE
-        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs
-        previous_run=$(echo -n $url | ./job_status_check.py ec2_check ${{ github.run_id }})
-        if [ $previous_run == 'success' ]; then
-          echo "Check on previous runs passed."
-          echo "::set-output name=check::pass"
-        else
-          echo "Check on previous runs failed."
-          echo "::set-output name=check::fail"
-        fi
+        eval url=$base_url
+        echo -n $url | ./check_status.py ec2 ${{ github.run_id }}
 
-    - name: Configure AWS
-      uses: aws-actions/configure-aws-credentials@v1
-      if: steps.current.outputs.check == 'pass' && steps.previous.outputs.check == 'pass'
+    - uses: aws-actions/configure-aws-credentials@v1
+      if: steps.current.outputs.check == 'pass'
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
-    - name: Start ec2 instance
+    - name: Start ec2 instances
       id: ec2
-      if: steps.current.outputs.check == 'pass' && steps.previous.outputs.check == 'pass'
-      env:
-        aws_instance_id: ${{ secrets.AWS_INSTANCE_ID }}
+      if: steps.current.outputs.check == 'pass'
       run: |
-        if [ ${{ steps.current.outputs.check }} == 'pass' ]; then
-          no_stopped=0
-          while [ $no_stopped -lt 2 ]; do
-            sleep 20
-            echo "no_stopped: $no_stopped"
-            no_stopped=$(aws ec2 describe-instances --instance-ids $aws_instance_id | jq -r '.Reservations[].Instances[].State.Name' | grep stopped | wc -l)
-          done
+        no_stopped=0
+        while [ $no_stopped -lt $no_instances ]; do
+          sleep 20
+          no_stopped=$(aws ec2 describe-instances --instance-ids $aws_instance_id \
+            | jq -r '.Reservations[].Instances[].State.Name' | grep stopped | wc -l)
           echo "no_stopped: $no_stopped"
-          echo "I am starting ec2 instances."
-          aws ec2 start-instances --instance-ids $aws_instance_id
-          echo "::set-output name=started::yes"
-        elif [ ${{ steps.current.outputs.check }} == 'fail' ]; then
-          echo "Sorry, I cannot start ec2 instances."
-          echo "::set-output name=started::no"
-        fi
+        done
+        aws ec2 start-instances --instance-ids $aws_instance_id
+        echo "::set-output name=started::yes"
 
   stoprunner:
     name: Stop runners
@@ -100,32 +79,18 @@ jobs:
     if: needs.startrunner.outputs.started == 'yes'
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-    - name: Check current run
-      env:
-        AUTH: ${{ secrets.GITHUB_TOKEN }}
+    - name: Check all tests are complete
       run: |
-        cd $GITHUB_WORKSPACE
-        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/${{ github.event.workflow_run.id }}
-        current_run=$(echo $url | ./job_status_check.py test_check)
-        if [ $current_run == 'success' ]; then
-          echo "All tests completed."
-        elif [ $current_run == 'failure' ]; then
-          echo "I should not be here."
-        fi
+        eval url=$base_url/${{ github.event.workflow_run.id }}
+        echo $url | ./check_status.py test
 
-    - name: Configure AWS
-      uses: aws-actions/configure-aws-credentials@v1
+    - uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
-    - name: Stop ec2
-      env:
-        aws_instance_id: ${{ secrets.AWS_INSTANCE_ID }}
-      run: |
-        echo "I am stopping ec2 instances."
-        aws ec2 stop-instances --instance-ids $aws_instance_id
+    - name: Stop ec2 instances
+      run: aws ec2 stop-instances --instance-ids $aws_instance_id
